@@ -1,25 +1,31 @@
 // ==UserScript==
 // @name         虎扑助手
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.2.1
 // @description  在浏览虎扑时可一键查看所有图片
 // @author       landswimmer
 // @match        https://bbs.hupu.com/*.html
 // @connect      hupu.com
 // @grant        GM_xmlhttpRequest
+// @license      GPLv3
 // ==/UserScript==
 
 (function () {
     'use strict';
     //第一部分，布局相关
         let picModeBtn = document.createElement("div");
+        picModeBtn.innerHTML = "看图";
+        picModeBtn.style.display = "flex";
+        picModeBtn.style.justifyContent = "center";
+        picModeBtn.style.alignItems = "center";
         picModeBtn.style.position = "fixed";
         picModeBtn.style.right = "2%";
         picModeBtn.style.bottom = "50px";
         picModeBtn.style.width = "48px";
         picModeBtn.style.height = "48px";
-        picModeBtn.style.backgroundColor = "red";
-
+        picModeBtn.style.border = "1px solid #999999";
+        picModeBtn.style.borderRadius = "3px";
+        picModeBtn.style.cursor = "pointer";
 
         let picModeDiv = document.createElement("div");
         picModeDiv.style.position = "fixed";
@@ -80,25 +86,11 @@
             }
         }
     }
-    //let xhr = new XMLHttpRequest();
     function sendRequest() {
         details.url = baseUrl + pageIndex;
         GM_xmlhttpRequest(details);
     }
     sendRequest();
-    /*xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            let responseData = JSON.parse(xhr.response).data;
-            if (pageIndex === 1) {
-                dataHandler(responseData.t_detail);
-                responseData.lr_list.forEach(dataHandler);
-            }
-            responseData.r_list.forEach(dataHandler);
-            if (++pageIndex <= responseData.r_total_page) {
-                sendRequest();
-            }
-        }
-    }*/
 
     //请求第一页数据
     //处理第一页数据
