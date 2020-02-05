@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         虎扑助手
 // @namespace    http://tampermonkey.net/
-// @version      0.2.1
-// @description  在浏览虎扑时可一键查看所有图片
+// @version      0.3.1
+// @description  在浏览虎扑时可一键查看所有图片和视频
 // @author       landswimmer
 // @match        https://bbs.hupu.com/*.html
 // @connect      hupu.com
@@ -50,19 +50,30 @@
         pic.style.maxHeight = "90vh";
         pic.style.cursor = "zoom-in";
 
+        let mp4 = document.createElement("video");
+        mp4.controls = "true";
+        mp4.style.display = "none";
+        mp4.style.maxHeight = "90vh";
+        mp4.style.maxWidth = "80vw";  
+
     //第二部分，逻辑相关
     let imgList = [];
     let i = 0;
     let pageIndex = 1;
-    let re = /src.*?\?/g;
+    let re = /src='.*?'/g;
     let baseUrl = 'https://m.hupu.com/api/v1/bbs-thread-frontend/' + window.location.href.substr(21, window.location.href.length - 26) + '?page=';
     //提取帖子id
 
     function dataHandler(eachReply) {
         let reResult = eachReply.content.match(re);
+        //console.log(reResult);
         if (reResult) {
             reResult.forEach(rawSrc => {
-                imgList.push(rawSrc.substr(5, rawSrc.length - 6).replace(/\\/g, ""));
+                if(rawSrc.match(/\.mp4/)){
+                    imgList.push(rawSrc.substr(5, rawSrc.length - 6).replace(/\\/g, ""));
+                }else{
+                    imgList.push(rawSrc.match(/src='.*?\?/g)[0].substr(5, rawSrc.length - 6).replace(/\\/g, ""));
+                }
             });
         }
     }
@@ -105,13 +116,29 @@
             if (e.keyCode === 39) {
                 if (i < imgList.length - 1) {
                     i++;
-                    pic.src = imgList[i];
+                    if(imgList[i].match(/\.mp4/)){
+                        mp4.src = imgList[i];
+                        pic.style.display = "none";
+                        mp4.style.display = "initial";                      
+                    }else{
+                        pic.src = imgList[i];
+                        mp4.style.display = "none";
+                        pic.style.display = "initial";                       
+                    }
                 }
             }
             if (e.keyCode === 37) {
                 if (i > 0) {
                     i--;
-                    pic.src = imgList[i];
+                    if(imgList[i].match(/\.mp4/)){
+                        mp4.src = imgList[i];
+                        mp4.style.display = "initial";
+                        pic.style.display = "none";
+                    }else{
+                        pic.src = imgList[i];
+                        pic.style.display = "initial";
+                        mp4.style.display = "none";
+                    }
                 }
             }
             if (e.keyCode === 27) {
@@ -127,9 +154,15 @@
     document.onkeydown = keyDownHandler;
 
     picModeBtn.onclick = function () {
+        imgList = [...new Set(imgList)];//抄袭代码
         if (imgList.length) {
-            pic.src = imgList[i];
-            pic.style.display = "initial";
+            if(imgList[i].match(/\.mp4/)){
+                mp4.src = imgList[i];
+                mp4.style.display = "initial";
+            }else{
+                pic.src = imgList[i];
+                pic.style.display = "initial";
+            }           
         } else {
             placeHolder.style.display = "initial";
         }
@@ -140,6 +173,7 @@
     let fragment = document.createDocumentFragment();
     picModeDiv.appendChild(pic);
     picModeDiv.appendChild(placeHolder);
+    picModeDiv.appendChild(mp4);
     fragment.appendChild(picModeBtn);
     fragment.appendChild(picModeDiv);
     bodyNode.appendChild(fragment);
