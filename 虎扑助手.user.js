@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         虎扑助手
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.5.2
 // @description  在浏览虎扑时可一键查看所有图片和视频
 // @author       landswimmer
 // @match        https://bbs.hupu.com/*.html
@@ -61,29 +61,33 @@
 
     let picModeBtn = document.createElement("div");
     picModeBtn.innerHTML = "看图";
-    picModeBtn.style.display = "flex";
-    picModeBtn.style.justifyContent = "center";
-    picModeBtn.style.alignItems = "center";
-    picModeBtn.style.position = "fixed";
-    picModeBtn.style.right = "calc(2% + 4px)";
-    picModeBtn.style.bottom = "50px";
-    picModeBtn.style.width = "40px";
-    picModeBtn.style.height = "40px";
-    picModeBtn.style.border = "1px solid #999999";
-    picModeBtn.style.borderRadius = "3px";
-    picModeBtn.style.cursor = "pointer";
+    picModeBtn.style.cssText = "\
+        position: fixed;\
+        right: calc(2% + 4px);\
+        bottom: 50px;\
+        border: 1px solid #999;\
+        border-radius: 3px;\
+        height: 40px;\
+        width: 40px;\
+        display: flex;\
+        justify-content: center;\
+        align-items: center;\
+        cursor: pointer;\
+    ";
 
     let picModeDiv = document.createElement("div");
     picModeDiv.id = "insertDiv";
-    picModeDiv.style.position = "fixed";
-    picModeDiv.style.display = "flex";
-    picModeDiv.style.justifyContent = "center";
-    picModeDiv.style.alignItems = "center";
-    picModeDiv.style.top = "0"
-    picModeDiv.style.zIndex = "1000"
-    picModeDiv.style.width = "100vw";
-    picModeDiv.style.height = "100vh";
-    picModeDiv.style.backgroundColor = "#222222";
+    picModeDiv.style.cssText = "\
+        position: fixed;\
+        top: 0;\
+        width: 100vw;\
+        height: 100vh;\
+        z-index: 1000;\
+        display: flex;\
+        justify-content: center;\
+        align-items: center;\
+        background-color: #222;\
+    ";
 
     let placeHolder = document.createElement("div");
     placeHolder.innerHTML = "本帖没有图片哦";
@@ -101,47 +105,38 @@
     mp4.style.maxHeight = "100vh";
     mp4.style.maxWidth = "100vw";
 
+    let cssTouchPad = "\
+        visibility: hidden;\
+        position: fixed;\
+        top: calc(50vh - 25px);\
+        border: 25px solid transparent;\
+        height: 0;\
+        width: 0;\
+        mix-blend-mode: difference;\
+        cursor: pointer;\
+    ";
+
     let touchPadLeft = document.createElement("div");
-    touchPadLeft.style.position = "fixed";
-    touchPadLeft.style.visibility = "hidden";
-    touchPadLeft.style.top = "calc(50vh - 25px)";
+    touchPadLeft.style.cssText = cssTouchPad;
     touchPadLeft.style.left = "20px";
-    touchPadLeft.style.height = "0";
-    touchPadLeft.style.width = "0";
-    touchPadLeft.style.borderWidth = "25px";
-    touchPadLeft.style.borderStyle = "solid";
-    touchPadLeft.style.borderTopColor = "transparent";
     touchPadLeft.style.borderRightColor = "rgba(128,128,128,0.8)";
-    touchPadLeft.style.borderBottomColor = "transparent";
-    touchPadLeft.style.borderLeftColor = "transparent";
-    touchPadLeft.style.mixBlendMode = "difference";
-    touchPadLeft.style.cursor = "pointer";
 
     let touchPadRight = document.createElement("div");
-    touchPadRight.style.position = "fixed";
-    touchPadRight.style.visibility = "hidden";
-    touchPadRight.style.top = "calc(50vh - 25px)";
+    touchPadRight.style.cssText = cssTouchPad;
     touchPadRight.style.right = "20px";
-    touchPadRight.style.height = "0";
-    touchPadRight.style.width = "0";
-    touchPadRight.style.borderWidth = "25px";
-    touchPadRight.style.borderStyle = "solid";
-    touchPadRight.style.borderTopColor = "transparent";
-    touchPadRight.style.borderRightColor = "transparent";
-    touchPadRight.style.borderBottomColor = "transparent";
     touchPadRight.style.borderLeftColor = "rgba(128,128,128,0.8)";
-    touchPadRight.style.mixBlendMode = "difference";
-    touchPadRight.style.cursor = "pointer";
 
     let closeBtn = document.createElement("div");
     closeBtn.innerHTML = "X";
-    closeBtn.style.position = "fixed";
-    closeBtn.style.right = "30px";
-    closeBtn.style.top = "20px";
-    closeBtn.style.color = "rgba(128,128,128,0.8)";
-    closeBtn.style.mixBlendMode = "difference";
-    closeBtn.style.fontSize = "30px";
-    closeBtn.style.cursor = "pointer";
+    closeBtn.style.cssText = "\
+        position: fixed;\
+        top: 20px;\
+        right: 30px;\
+        color: rgba(128,128,128,0.8);\
+        font-size: 30px;\
+        mix-blend-mode: difference;\
+        cursor: pointer;\
+    ";
 
     let fragment = document.createDocumentFragment();
     let rawFragment = document.createDocumentFragment();
@@ -176,6 +171,19 @@
             touchPadRight.style.visibility = "visible";
         }
     }
+    function closeHandler() {
+        placeHolder.style.display = "none";
+        pic.style.display = "none";
+        mp4.style.display = "none";
+        touchPadRight.style.visibility = "hidden";
+        touchPadLeft.style.visibility = "hidden";
+        if (imgList.length) {
+            i = 0;
+            pic.src = imgList[i];
+        }
+        fragment.appendChild(document.getElementById("insertDiv"));
+        document.body.appendChild(rawFragment);
+    }
 
     document.onkeydown = (e) => {
         if (rawFragment) {
@@ -188,17 +196,7 @@
                 imgSwitch();
             }
             if (e.keyCode === 27) {
-                placeHolder.style.display = "none";
-                pic.style.display = "none";
-                mp4.style.display = "none";
-                touchPadRight.style.visibility = "hidden";
-                touchPadLeft.style.visibility = "hidden";
-                if (imgList.length) {
-                    i = 0;
-                    pic.src = imgList[i];
-                }
-                fragment.appendChild(document.getElementById("insertDiv"));
-                document.body.appendChild(rawFragment);
+                closeHandler();
             }
         }
     }
@@ -214,19 +212,7 @@
             imgSwitch();
         }
     }
-    closeBtn.onclick = () => {
-        placeHolder.style.display = "none";
-        pic.style.display = "none";
-        mp4.style.display = "none";
-        touchPadRight.style.visibility = "hidden";
-        touchPadLeft.style.visibility = "hidden";
-        if (imgList.length) {
-            i = 0;
-            pic.src = imgList[i];
-        }
-        fragment.appendChild(document.getElementById("insertDiv"));
-        document.body.appendChild(rawFragment);
-    }
+    closeBtn.onclick = closeHandler;
     picModeBtn.onclick = function () {
         imgList = [...new Set(imgList)];//抄袭代码
         rawFragment.appendChild(document.getElementsByClassName("hp-wrap details")[0]);
